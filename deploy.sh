@@ -14,12 +14,7 @@ sudo dnf install nginx -y
 sudo systemctl start nginx
 sudo systemctl enable nginx
 
-# Clonar el repositorio si no existe ya
-if [ ! -d "eventhub-front-react" ]; then
-    git clone https://github.com/GRISE-UPM/muii-prof-2026
-fi
-
 # Permisos de ejecución a los scripts de despliegue
-chmod +x muii-prof-2026/aws-scripts/*.sh
+chmod +x aws-scripts/*.sh
 
 

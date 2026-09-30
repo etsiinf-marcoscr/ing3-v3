@@ -99,7 +99,7 @@ case "$ACTION" in
             --db-instance-identifier "$DB_INSTANCE_ID" \
             --db-cluster-identifier "$DB_CLUSTER_ID" \
             --engine "$DB_ENGINE" \
-            --db-instance-class db.t3.medium \
+            --db-instance-class db.t2.small \
             --no-publicly-accessible \
             --output text >/dev/null
         echo "Esperando a que la instancia esté available..."
