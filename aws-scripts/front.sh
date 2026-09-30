@@ -23,14 +23,18 @@ fi
 echo "Clonando el repositorio y compilando el frontend en EC2..."
 
 # PUBLIC_IP se expande localmente; no se comilla END_BUILD para permitirlo.
-ssh -T -o StrictHostKeyChecking=no -i "$KEY_PATH" ec2-user@"$PUBLIC_IP" << END_BUILD
+ssh -T -o StrictHostKeyChecking=no -i "$KEY_PATH" ubuntu@"$PUBLIC_IP" << END_BUILD
 set -e
-sudo yum update -y
-curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-sudo yum install -y nodejs git
+sudo apt-get update -y
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs git
 
 sudo rm -rf /tmp/eventhub-front
 git clone https://github.com/GRISE-UPM/muii-prof-2026 /tmp/eventhub-front
+# Copiar .env.local generado por cognito.sh en el bastion
+scp -o StrictHostKeyChecking=no -i "$KEY_PATH" \
+    "$PROJECT_ROOT/eventhub-front-react/.env.local" \
+    ubuntu@"$PUBLIC_IP":/tmp/eventhub-front/eventhub-front-react/.env.local
 cd /tmp/eventhub-front/eventhub-front-react
 
 # Vite solo carga este fichero con npm run build, no con npm run dev.
@@ -52,7 +56,7 @@ fi
 sudo rm -rf /var/www/html/*
 sudo mv "\$BUILD_DIR"/* /var/www/html/
 sudo rm -rf /tmp/eventhub-front
-sudo chmod -R 755 /var/www/html
+sudo chown -R www-data:www-data /var/www/html
 END_BUILD
 
 echo "El build queda en la instancia, servido por Nginx. No va en el repositorio:"

@@ -31,16 +31,14 @@ fi
 echo "Configurando Nginx en $PUBLIC_IP..."
 
 # -i: clave SSH de AWS Academy
-scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$LOADING_HTML" ec2-user@"$PUBLIC_IP":"$REMOTE_LOADING"
+scp -o StrictHostKeyChecking=no -i "$KEY_PATH" "$LOADING_HTML" ubuntu@"$PUBLIC_IP":"$REMOTE_LOADING"
 
 # -T: sin pseudo-terminal, para que no avise al leer el script por stdin
-ssh -T -o StrictHostKeyChecking=no -i "$KEY_PATH" ec2-user@"$PUBLIC_IP" \
+ssh -T -o StrictHostKeyChecking=no -i "$KEY_PATH" ubuntu@"$PUBLIC_IP" \
     "REMOTE_LOADING='$REMOTE_LOADING' REMOTE_INDEX='$REMOTE_INDEX' bash -s" << 'END_NGINX'
 set -e
-sudo yum update -y
-# nginx1 está en Amazon Linux Extras en Amazon Linux 2
-sudo amazon-linux-extras install nginx1 -y
-sudo yum install -y openssl
+sudo apt-get update -y
+sudo apt-get install -y nginx openssl
 sudo mkdir -p /etc/nginx/ssl
 
 # Certificado autofirmado. Cifra el tráfico del navegador; Cognito exige https en el callback.
@@ -49,9 +47,7 @@ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -out /etc/nginx/ssl/nginx.crt \
     -subj "/C=ES/ST=State/L=City/O=Dev/OU=IT/CN=*"
 
-# Amazon Linux 2 usa conf.d en lugar de sites-available
-sudo rm -f /etc/nginx/conf.d/default.conf
-sudo tee /etc/nginx/conf.d/eventhub.conf > /dev/null << 'NGINX_CONF'
+sudo tee /etc/nginx/sites-available/default > /dev/null << 'NGINX_CONF'
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -88,8 +84,9 @@ NGINX_CONF
 sudo mkdir -p /var/www/html
 sudo rm -rf /var/www/html/*
 sudo mv "$REMOTE_LOADING" "$REMOTE_INDEX"
-sudo chmod -R 755 /var/www/html
+sudo chown -R www-data:www-data /var/www/html
 
+sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl enable nginx
 sudo systemctl restart nginx

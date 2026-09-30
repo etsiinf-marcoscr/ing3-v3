@@ -23,12 +23,12 @@ fi
 echo "Clonando el repositorio y compilando el backend en EC2..."
 
 # -T: sin pseudo-terminal, para que no avise al leer el script por stdin
-ssh -T -o StrictHostKeyChecking=no -i "$KEY_PATH" ec2-user@"$PUBLIC_IP" << 'END_BACKEND'
+ssh -T -o StrictHostKeyChecking=no -i "$KEY_PATH" ubuntu@"$PUBLIC_IP" << 'END_BACKEND'
 set -e
-sudo yum update -y
-sudo yum install -y git maven tar gzip
+sudo apt-get update -y
+sudo apt-get install -y git maven tar gzip
 
-# Instalar JDK 25 (necesario para compilar; versión exacta del directorio)
+# Instalar JDK 25 desde Oracle (no está en los repos de Ubuntu)
 curl -fsSL https://download.oracle.com/java/25/latest/jdk-25_linux-x64_bin.tar.gz -o /tmp/jdk25.tar.gz
 sudo mkdir -p /usr/lib/jvm
 sudo tar -xzf /tmp/jdk25.tar.gz -C /usr/lib/jvm
@@ -38,6 +38,10 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 sudo rm -rf /tmp/eventhub-back
 git clone https://github.com/GRISE-UPM/muii-prof-2026 /tmp/eventhub-back
+# Copiar cognito.properties generado por cognito.sh en el bastion
+scp -o StrictHostKeyChecking=no -i "$KEY_PATH" \
+    "$PROJECT_ROOT/eventhub-back-springboot/src/main/resources/cognito.properties" \
+    ubuntu@"$PUBLIC_IP":/tmp/eventhub-back/eventhub-back-springboot/src/main/resources/cognito.properties
 cd /tmp/eventhub-back/eventhub-back-springboot
 mvn clean package -DskipTests
 
@@ -48,7 +52,7 @@ sudo rm -f /etc/systemd/system/eventhub.service
 sudo rm -rf /opt/eventhub
 sudo mkdir -p /opt/eventhub
 sudo mv target/*.jar /opt/eventhub/eventhub.jar
-sudo chown -R ec2-user:ec2-user /opt/eventhub
+sudo chown -R ubuntu:ubuntu /opt/eventhub
 sudo rm -rf /tmp/eventhub-back
 
 JAVA_BIN=$(ls -d /usr/lib/jvm/jdk-25*/bin/java | head -1)
@@ -58,7 +62,7 @@ Description=Event Hub Spring Boot backend
 After=network.target
 
 [Service]
-User=ec2-user
+User=ubuntu
 WorkingDirectory=/opt/eventhub
 ExecStart=${JAVA_BIN} -jar /opt/eventhub/eventhub.jar
 Restart=always
