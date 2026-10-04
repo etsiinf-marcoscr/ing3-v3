@@ -106,6 +106,7 @@ case "$ACTION" in
             --instance-type "$INSTANCE_TYPE" \
             --key-name "$KEY_NAME" \
             --security-group-ids "$SG_ID" \
+            --iam-instance-profile Name=LabInstanceProfile \
             --query "Instances[0].InstanceId" \
             --output text)
         state_set InstanceId "$INSTANCE_ID"
