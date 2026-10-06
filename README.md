@@ -15,4 +15,3 @@ Pasos:
 Al acabar:   
 12) ```make delete```    
 13) Borrar la EC2 de bastión   
-14) Para evitar gastos, liberar IP elástica en **_EC2 > Elastic IPs > Seleccionar la IP > Actions > Release Elastic IP_**
