@@ -12,6 +12,8 @@ Pasos:
 10) ```./deploy.sh```
 11) ```make deploy```
 
+    Una vez se tiene todo desplegado, crear el grupo **admin** en Cognito y un usuario por ejemplo (a@a) y añadirlo al grupo admin. Luego se puede crear una cuenta con el correo de la UPM que pertenecerá al grupo user
+
 Al acabar:   
 12) ```make delete```    
 13) Borrar la EC2 de bastión   
